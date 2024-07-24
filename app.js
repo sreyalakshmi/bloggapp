@@ -4,6 +4,7 @@ const mongoose=require("mongoose")
 const bcrypt=require("bcrypt")
 const jwt=require("jsonwebtoken")
 const{registermodel}=require("./models/register")
+const { postModel } = require("./models/post")
 
 const generateHashedPassword=async(password)=>{
     const salt=await bcrypt.genSalt(10)
@@ -14,6 +15,21 @@ const app=express()
 app.use(cors())
 app.use(express.json())
 mongoose.connect("mongodb+srv://sreya:sreya123@cluster0.rk6cqoj.mongodb.net/bloggdb?retryWrites=true&w=majority&appName=Cluster0")
+
+app.post("/add",async(req,res)=>{
+    let input=req.body
+    let token=req.headers.token
+    jwt.verify(token,"blogg-app",async(error,decoded)=>{
+        if (decoded && decoded.email) {
+            let result=new postModel(input)
+            await result.save()
+            res.json({"status":"success"})
+        } else {
+            res.json({"status":"invalid authentication"})
+        }
+    })
+})
+
 
 
 app.post("/signup",async(req,res)=>{
@@ -57,6 +73,6 @@ app.post("/signin",(req,res)=>{
     ).catch()
  })
 
- app.listen(8080,()=>{
+ app.listen(8081,()=>{
     console.log("server started")
 })
